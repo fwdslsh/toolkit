@@ -12,6 +12,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Fetch latest versions
+        id: versions
+        run: |
+          # Function to get latest release tag, with fallback
+          get_latest_version() {
+            local repo="$1"
+            local fallback="$2"
+            local version=$(curl -s "https://api.github.com/repos/$repo/releases/latest" | grep '"tag_name":' | sed -E 's/.*"tag_name": "([^"]+)".*/\1/' | sed 's/^v//')
+            if [ -n "$version" ] && [ "$version" != "null" ]; then
+              echo "$version"
+            else
+              echo "$fallback"
+            fi
+          }
+          
+          # Fetch latest versions or use fallbacks
+          GLOW_VERSION=$(get_latest_version "charmbracelet/glow" "2.1.1")
+          GH_VERSION=$(get_latest_version "cli/cli" "2.76.2")
+          UNIFY_VERSION=$(get_latest_version "fwdslsh/unify" "0.4.2")
+          INFORM_VERSION=$(get_latest_version "fwdslsh/inform" "0.0.4")
+          
+          # GIV_VERSION - this is a Python package, keep the fallback
+          GIV_VERSION="0.5.2-beta"
+          
+          echo "glow_version=$GLOW_VERSION" >> $GITHUB_OUTPUT
+          echo "gh_version=$GH_VERSION" >> $GITHUB_OUTPUT
+          echo "unify_version=$UNIFY_VERSION" >> $GITHUB_OUTPUT
+          echo "inform_version=$INFORM_VERSION" >> $GITHUB_OUTPUT
+          echo "giv_version=$GIV_VERSION" >> $GITHUB_OUTPUT
+          
+          echo "Detected versions:"
+          echo "  Glow: $GLOW_VERSION"
+          echo "  GitHub CLI: $GH_VERSION"
+          echo "  Unify: $UNIFY_VERSION"
+          echo "  Inform: $INFORM_VERSION"
+          echo "  Giv: $GIV_VERSION"
+
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
@@ -20,7 +57,15 @@ jobs:
 
       - name: Build Docker image with release tag
         run: |
-          docker build -t fwdslsh/toolkit:${{ github.ref_name }} -t fwdslsh/toolkit:latest .
+          docker build \
+            --build-arg glow_version=${{ steps.versions.outputs.glow_version }} \
+            --build-arg gh_version=${{ steps.versions.outputs.gh_version }} \
+            --build-arg unify_version=${{ steps.versions.outputs.unify_version }} \
+            --build-arg inform_version=${{ steps.versions.outputs.inform_version }} \
+            --build-arg giv_version=${{ steps.versions.outputs.giv_version }} \
+            -t fwdslsh/toolkit:${{ github.ref_name }} \
+            -t fwdslsh/toolkit:latest \
+            .
 
       - name: Push Docker image with release tag
         run: |
