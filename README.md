@@ -129,13 +129,25 @@ This repository includes GitHub Actions workflow for automatic building and publ
 - **Trigger**: On release creation
 - **Registries**: Docker Hub (`fwdslsh/toolkit`)
 - **Tags**: Both release version and `latest`
+- **Auto-versioning**: Automatically fetches latest versions of included tools at build time
+
+### Version Management
+
+The release workflow automatically determines the latest versions of tools from their respective repositories:
+- **Glow**: Latest from [charmbracelet/glow](https://github.com/charmbracelet/glow)
+- **GitHub CLI**: Latest from [cli/cli](https://github.com/cli/cli)  
+- **Unify**: Latest from [fwdslsh/unify](https://github.com/fwdslsh/unify)
+- **Inform**: Latest from [fwdslsh/inform](https://github.com/fwdslsh/inform)
+- **Giv**: Uses predefined version (Python package)
+
+If the GitHub API is unavailable, the workflow falls back to default versions defined in the Dockerfile ARG statements.
 
 ## Contributing
 
 When contributing to this toolkit:
 
 1. Test any changes to the Dockerfile by building locally
-2. Update tool versions in the ARG definitions at the top of the Dockerfile
+2. The ARG definitions at the top of the Dockerfile serve as fallback versions
 3. Verify that all tools install and function correctly
 4. Update this README if adding new tools or changing functionality
 
