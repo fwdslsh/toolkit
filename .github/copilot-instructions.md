@@ -8,7 +8,7 @@ This is a Docker-based toolkit that provides a curated set of command-line devel
 
 ### Bootstrap and Build
 - **Build the Docker image**: `docker build -t fwdslsh/toolkit:latest .`
-  - **TIMING**: Clean build takes 57-60 seconds. Cached builds take ~0.1 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
+  - **TIMING**: Clean build takes 57-60 seconds. Cached builds take ~0.5 seconds. NEVER CANCEL. Set timeout to 120+ seconds.
   - **SSL Issues**: In some environments, downloads may fail due to SSL certificate issues. The Dockerfile includes workarounds with `curl -k`.
   - **Python Version**: Uses `python3` and `python3-dev` (not python3.11) as that's what's available in Debian stable.
 
@@ -35,7 +35,7 @@ Due to network/SSL restrictions in some environments, these may not be installed
 ## Build Validation and Troubleshooting
 
 ### Build Process Validation
-1. **NEVER CANCEL builds** - clean builds take 57-60 seconds, cached builds take ~0.1 seconds
+1. **NEVER CANCEL builds** - clean builds take 57-60 seconds, cached builds take ~0.5 seconds
 2. **Check build success**: `docker images fwdslsh/toolkit` should show the image
 3. **Test basic functionality**: Create a test file: `echo "# Test" > test.md`
 
@@ -43,13 +43,16 @@ Due to network/SSL restrictions in some environments, these may not be installed
 - **SSL certificate errors**: Dockerfile uses `curl -k` to bypass certificate verification
 - **Python 3.11 not found**: Fixed to use default `python3` package
 - **pipx installation failures**: May occur due to network restrictions - not critical for basic functionality
+- **Container execution failures**: If you get "cannot execute binary file" errors, this indicates environment limitations. Focus on build success rather than runtime validation.
 
 ### Manual Validation Requirements
 After building, ALWAYS test these scenarios:
-1. **Container starts successfully**: `./run.sh` should drop you into a bash shell
-2. **Tools are accessible**: Test `glow --version` and `gh --version`
+1. **Container starts successfully**: `./run.sh` should drop you into a bash shell (environment permitting)
+2. **Tools are accessible**: Test `glow --version` and `gh --version` (if container execution works)
 3. **File mounting works**: Create a test file in the current directory and verify it's visible in `/workspace`
 4. **Network access**: Test `curl -I https://github.com` to verify external connectivity
+
+**CRITICAL**: If you encounter "cannot execute binary file" errors, this indicates container execution limitations in your environment. Focus on successful build completion as the primary validation.
 
 ## Development Workflow
 
@@ -68,7 +71,7 @@ After building, ALWAYS test these scenarios:
 
 ### Build Commands
 ```bash
-# Standard build (0.1 seconds if cached, 57-60 seconds if clean)
+# Standard build (0.5 seconds if cached, 57-60 seconds if clean)
 docker build -t fwdslsh/toolkit:latest .
 
 # Clean build (57-60 seconds) - NEVER CANCEL
@@ -108,8 +111,8 @@ $HOME/.bun/bin/bun --version      # Test Bun (if installed)
 
 ## Validation Checklist
 Before considering the toolkit functional, verify:
-- [ ] `docker build` completes successfully (57-60 seconds clean, ~0.1 seconds cached)
-- [ ] `./run.sh` starts container and drops to bash prompt
+- [ ] `docker build` completes successfully (57-60 seconds clean, ~0.5 seconds cached)
+- [ ] `./run.sh` starts container and drops to bash prompt (environment permitting)
 - [ ] `glow --version` shows v2.1.1 (if container execution works)
 - [ ] `gh --version` shows v2.76.2 (if container execution works)
 - [ ] `python3 --version` shows installed Python version (if container execution works)
@@ -118,4 +121,4 @@ Before considering the toolkit functional, verify:
 
 **Note**: Some environments may have container execution limitations. Focus on successful build completion as the primary validation.
 
-**Remember**: NEVER CANCEL long-running builds. Clean Docker builds for this toolkit take 57-60 seconds, cached builds take ~0.1 seconds.
+**Remember**: NEVER CANCEL long-running builds. Clean Docker builds for this toolkit take 57-60 seconds, cached builds take ~0.5 seconds.
