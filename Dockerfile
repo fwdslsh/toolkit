@@ -7,12 +7,13 @@ WORKDIR /workspace
 # Expose port 3000 for external access
 EXPOSE 3000
 
-# Define version arguments for various tools
+# Define version arguments for various tools (use "latest" for latest version)
 ARG glow_version=2.1.1
-ARG giv_version=0.5.2-beta
-ARG unify_version=0.4.2
-ARG inform_version=0.0.4
 ARG gh_version=2.76.2
+ARG giv_version=latest
+ARG unify_version=latest
+ARG inform_version=latest
+ARG catalog_version=latest
 
 # Install necessary packages and dependencies
 RUN apt-get update && apt-get install -y \
@@ -54,16 +55,37 @@ USER nonroot
 # Install Bun, a fast JavaScript runtime
 RUN curl -fsSL https://bun.sh/install | bash
 
-# Install Giv and other tools using pipx and Bun
-# Note: These may fail due to SSL certificate issues in some environments
-RUN pip config set global.trusted-host pypi.org && \
-    pip config set global.trusted-host pypi.python.org && \
-    pip config set global.trusted-host files.pythonhosted.org || true
-# RUN pipx install giv || echo "Warning: giv installation failed"
-# RUN $HOME/.bun/bin/bun install -g @fwdslsh/unify@${unify_version} @fwdslsh/inform@${inform_version} || echo "Warning: bun package installation failed"
+# Install fwdslsh tools using their install scripts
+# Add ~/.local/bin to PATH for user installations
+ENV PATH="$PATH:/home/nonroot/.local/bin"
 
-# Add the Giv binary directory to the PATH
-ENV PATH="$PATH:/home/nonroot/.local/pipx/venvs/giv/bin"
+# Install giv
+RUN if [ "$giv_version" = "latest" ]; then \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/giv/main/install.sh | bash -s -- --user; \
+    else \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/giv/main/install.sh | bash -s -- --user --version "$giv_version"; \
+    fi
+
+# Install catalog  
+RUN if [ "$catalog_version" = "latest" ]; then \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/catalog/main/install.sh | bash -s -- --user; \
+    else \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/catalog/main/install.sh | bash -s -- --user --version "$catalog_version"; \
+    fi
+
+# Install unify
+RUN if [ "$unify_version" = "latest" ]; then \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/unify/main/install.sh | bash -s -- --user; \
+    else \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/unify/main/install.sh | bash -s -- --user --version "$unify_version"; \
+    fi
+
+# Install inform
+RUN if [ "$inform_version" = "latest" ]; then \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/inform/main/install.sh | bash -s -- --user; \
+    else \
+        curl -fsSL https://raw.githubusercontent.com/fwdslsh/inform/main/install.sh | bash -s -- --user --version "$inform_version"; \
+    fi
 
 # Set the default entry point to bash
 ENTRYPOINT ["/bin/bash"]
