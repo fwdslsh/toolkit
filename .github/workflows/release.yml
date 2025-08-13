@@ -70,6 +70,7 @@ jobs:
       - name: Push Docker image with release tag
         run: |
           docker push fwdslsh/toolkit:${{ github.ref_name }}
+          
 
       - name: Push Docker image with latest tag
         run: |

@@ -1,174 +1,208 @@
 # fwdslsh/toolkit
 
-A comprehensive Docker-based development toolkit containing essential tools for modern software development, documentation, and Git workflow management.
+Universal installer and centralized workflows for all fwdslsh CLI tools.
 
 ## Overview
 
-This toolkit provides a containerized environment with pre-installed development tools, making it easy to get started with various development tasks without having to install and configure tools individually on your local machine.
+This repository provides the essential infrastructure for the fwdslsh CLI ecosystem:
 
-## Included Tools
+1. **Universal Installer**: A single script that can install any fwdslsh CLI tool with platform detection and version management
+2. **Centralized Workflows**: Reusable GitHub Actions workflows for consistent release automation across all projects
+3. **Docker Toolkit**: A unified Docker container with all fwdslsh CLI tools pre-installed for development and CI/CD
 
-### Core Development Tools
-- **Python 3** with pip and pipx for Python development
-- **Build tools**: gcc, cmake, clang, build-essential
-- **Git**: Version control system
-- **curl**: Command-line tool for transferring data
-- **sudo**: Administrative privileges
+By centralizing these resources, we maintain consistency, reduce maintenance overhead, and provide a professional user experience.
 
-### Specialized Tools
-- **[Glow](https://github.com/charmbracelet/glow)** (v2.1.1): Terminal-based markdown renderer for beautiful documentation viewing
-- **[GitHub CLI (gh)](https://cli.github.com/)** (v2.76.2): Official GitHub command-line tool
-- **[Bun](https://bun.sh/)**: Fast all-in-one JavaScript runtime and toolkit
-- **[Giv](https://pypi.org/project/giv/)** (v0.5.2-beta): Python tool installed via pipx
-- **[@fwdslsh/unify](https://www.npmjs.com/package/@fwdslsh/unify)** (v0.4.2): JavaScript package for unification tasks
-- **[@fwdslsh/inform](https://www.npmjs.com/package/@fwdslsh/inform)** (v0.0.4): JavaScript package for information management
+## Contents
+
+### 📦 Centralized Workflows (`.github/workflows/`)
+
+Reusable GitHub Actions workflows that can be called from any fwdslsh repository:
+
+- **`build-binaries.yml`** - Cross-platform binary builder for Bun projects
+- **`create-release.yml`** - GitHub release creator with checksums and release notes
+- **`publish.docker.yml`** - Docker Hub multi-platform image publisher
+- **`publish.npm.yml`** - NPM package publisher
+- **`bun-test.yml`** - Bun test runner for CI/CD
+
+### 🛠️ Universal Installer (`install.sh`)
+
+A single installation script that can install any fwdslsh CLI tool:
+
+```bash
+# Quick install any tool
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s catalog
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s unify
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s inform
+```
+
+Features:
+
+- Multi-tool support (catalog, inform, unify, giv)
+- Automatic platform detection
+- Version management
+- PATH configuration assistance
+- Dry-run mode for testing
+
+### 🐳 Docker Toolkit (`Dockerfile`)
+
+A unified Docker container with all fwdslsh CLI tools pre-installed:
+
+```bash
+# Run the toolkit container
+docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest
+
+# Use specific tools
+docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest catalog --input docs --output build
+docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest unify build --source src --output dist
+docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest inform https://docs.example.com --output-dir content
+```
+
+Perfect for CI/CD pipelines and development environments where you need multiple tools.
+
+## Usage
+
+### For Repository Maintainers
+
+To use centralized workflows in your fwdslsh CLI project:
+
+1. **Create minimal workflow files** in your repository:
+
+```yaml
+# .github/workflows/release.yml
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build:
+    uses: fwdslsh/toolkit/.github/workflows/build-binaries.yml@main
+    with:
+      upload-artifacts: true
+
+  release:
+    needs: build
+    uses: fwdslsh/toolkit/.github/workflows/create-release.yml@main
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit
+
+  docker:
+    needs: [build, release]
+    uses: fwdslsh/toolkit/.github/workflows/publish.docker.yml@main
+    with:
+      tag: ${{ github.ref_name }}
+    secrets: inherit
+```
+
+```yaml
+# .github/workflows/test.yml
+name: Run Tests
+
+on: [push, pull_request]
+
+jobs:
+  run-tests:
+    uses: fwdslsh/toolkit/.github/workflows/bun-test.yml@main
+```
+
+2. **Configure repository secrets**:
+   - `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` for Docker publishing
+   - `NPM_TOKEN` for NPM publishing
+
+### For End Users
+
+Install any fwdslsh CLI tool using the universal installer:
+
+```bash
+# List available tools
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s -- --list
+
+# Install specific tool
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s unify
+
+# Install specific version
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s catalog -- --version v0.0.7
+```
+
+## Supported Projects
+
+Projects currently using these centralized workflows:
+
+| Project                                       | Description                     | Status    |
+| --------------------------------------------- | ------------------------------- | --------- |
+| [catalog](https://github.com/fwdslsh/catalog) | Documentation catalog generator | ✅ Active |
+| [inform](https://github.com/fwdslsh/inform)   | Web content extraction tool     | ✅ Active |
+| [unify](https://github.com/fwdslsh/unify)     | Modern static site generator    | ✅ Active |
+| [giv](https://github.com/fwdslsh/giv)         | AI-powered Git assistant        | ✅ Active |
+
+## Benefits
+
+### 🔧 Centralized Maintenance
+
+- Update workflows once, benefit all projects
+- Consistent behavior across repositories
+- Reduced duplication and maintenance burden
+
+### 🎯 Standardization
+
+- Identical release processes
+- Consistent binary naming conventions
+- Uniform installation experience
+
+### 🚀 Reliability
+
+- Battle-tested workflows
+- Continuous improvements
+- Shared bug fixes and security updates
+
+### 📈 Scalability
+
+- Easy onboarding for new projects
+- Minimal per-project configuration
+- Automatic updates for all consumers
 
 ## Quick Start
 
-### Building the Container
+### Install a CLI Tool
 
 ```bash
-# Clone the repository
-git clone https://github.com/fwdslsh/toolkit.git
-cd toolkit
+# Install the latest version of any tool
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s catalog
 
-# Build the Docker image
-docker build -t fwdslsh/toolkit:latest .
+# See all available tools
+curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s -- --list
 ```
 
-### Running the Container
+### Use in CI/CD
 
-#### Using the provided script (recommended):
+```yaml
+# GitHub Actions example
+- name: Install fwdslsh tools
+  run: |
+    curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s catalog
+    curl -fsSL https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh | bash -s unify
+
+- name: Generate documentation
+  run: |
+    inform https://docs.example.com --output-dir content
+    catalog --input content --output artifacts
+    unify build --source artifacts --output dist
+```
+
+### Use with Docker
+
 ```bash
-./run.sh
+# Pull the toolkit image
+docker pull fwdslsh/toolkit:latest
+
+# Use in your projects
+docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest \
+  sh -c "inform https://docs.example.com --output-dir /workspace/docs && catalog --input /workspace/docs --output /workspace/build"
 ```
-
-#### Manual Docker run:
-```bash
-docker run --rm -it --network host -p 3000:3000 -v $(pwd):/workspace fwdslsh/toolkit:latest
-```
-
-#### Running specific commands:
-```bash
-# Run a specific command in the container
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest glow README.md
-
-# Interactive shell with current directory mounted
-docker run --rm -it -v $(pwd):/workspace fwdslsh/toolkit:latest
-```
-
-## Usage Examples
-
-### Document Viewing with Glow
-```bash
-# View a markdown file with beautiful formatting
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest glow README.md
-
-# Start Glow's TUI for browsing markdown files
-docker run --rm -it -v $(pwd):/workspace fwdslsh/toolkit:latest glow
-```
-
-### GitHub CLI Operations
-```bash
-# Check GitHub CLI status
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest gh auth status
-
-# Clone a repository
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest gh repo clone owner/repo
-```
-
-### JavaScript Development with Bun
-```bash
-# Run Bun commands
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest /home/nonroot/.bun/bin/bun --version
-
-# Install dependencies
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest /home/nonroot/.bun/bin/bun install
-```
-
-### Python Development
-```bash
-# Run Python scripts
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest python3 script.py
-
-# Install Python packages
-docker run --rm -v $(pwd):/workspace fwdslsh/toolkit:latest pip install package-name
-```
-
-## Container Details
-
-- **Base Image**: Debian stable
-- **Working Directory**: `/workspace`
-- **Exposed Port**: 3000
-- **Non-root User**: `nonroot` with sudo privileges
-- **Entry Point**: `/bin/bash`
-
-## Networking
-
-The container is configured to use host networking mode, allowing applications running inside the container to access services on the host machine. Port 3000 is exposed for web applications or services that need external access.
-
-## Volume Mounting
-
-The container is designed to work with your local files by mounting the current directory to `/workspace`. This allows you to:
-
-- Edit files on your host machine
-- Run tools on those files inside the container
-- Have results available on your host machine
-
-## Development Workflow
-
-1. **Mount your project directory** as a volume to `/workspace`
-2. **Use the included tools** for your development tasks
-3. **Access services** running on your host machine through host networking
-4. **Install additional tools** as needed using the package managers
-
-## Building and Publishing
-
-This repository includes GitHub Actions workflow for automatic building and publishing:
-
-- **Trigger**: On release creation
-- **Registries**: Docker Hub (`fwdslsh/toolkit`)
-- **Tags**: Both release version and `latest`
-- **Auto-versioning**: Automatically fetches latest versions of included tools at build time
-
-### Version Management
-
-The release workflow automatically determines the latest versions of tools from their respective repositories:
-- **Glow**: Latest from [charmbracelet/glow](https://github.com/charmbracelet/glow)
-- **GitHub CLI**: Latest from [cli/cli](https://github.com/cli/cli)  
-- **Unify**: Latest from [fwdslsh/unify](https://github.com/fwdslsh/unify)
-- **Inform**: Latest from [fwdslsh/inform](https://github.com/fwdslsh/inform)
-- **Giv**: Uses predefined version (Python package)
-
-If the GitHub API is unavailable, the workflow falls back to default versions defined in the Dockerfile ARG statements.
-
-## Contributing
-
-When contributing to this toolkit:
-
-1. Test any changes to the Dockerfile by building locally
-2. The ARG definitions at the top of the Dockerfile serve as fallback versions
-3. Verify that all tools install and function correctly
-4. Update this README if adding new tools or changing functionality
-
-## License
-
-This project is licensed under the Creative Commons Attribution 4.0 International License (CC BY 4.0). See the [LICENSE](LICENSE) file for details.
-
-## Troubleshooting
-
-### Common Issues
-
-**SSL Certificate Errors**: If you encounter SSL certificate issues during build, this may be due to network configuration. Try building from a different network or check your corporate firewall settings.
-
-**Permission Issues**: The container runs as a non-root user (`nonroot`) with sudo privileges. If you need root access, you can use `sudo` within the container.
-
-**Tool Not Found**: Some tools are installed in user-specific locations:
-- Bun: `/home/nonroot/.bun/bin/bun`
-- Giv: Available in PATH after installation
-
-### Getting Help
-
-- Check tool-specific documentation for usage details
-- Verify volume mounts are correct for file access
-- Ensure proper networking configuration for service access
