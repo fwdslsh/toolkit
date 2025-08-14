@@ -8,6 +8,11 @@ on:
         required: false
         default: true
         type: boolean
+      target-file:
+        description: "Path to the CLI entry point file"
+        required: false
+        default: "src/cli.js"
+        type: string
     outputs:
       artifact-names:
         description: "Names of uploaded artifacts"
@@ -20,9 +25,11 @@ on:
         required: false
         default: true
         type: boolean
-env:
-  CLI_ENTRYPOINT: src/cli.js
-
+      target-file:
+        description: "Path to the CLI entry point file"
+        required: false
+        default: "src/cli.js"
+        type: string
 jobs:
   build:
     name: Build ${{ matrix.target }}
@@ -77,16 +84,27 @@ jobs:
         env:
           TARGET: ${{ matrix.bun-target }}
           VERSION: ${{ github.ref_name || github.event.inputs.tag || 'dev' }}
+          TARGET_FILE: ${{ inputs.target-file || 'src/cli.js' }}
         run: |
           # Create binary name based on target and extension
           BINARY_NAME="${{ github.event.repository.name }}-${{ matrix.target }}${{ matrix.extension }}"
           echo "Building binary: $BINARY_NAME"
+          echo "Using target file: $TARGET_FILE"
 
           # Set version environment variable for the build
-          export LIFT_VERSION="${VERSION#v}"
+          VERSION_TRIMMED="${VERSION#v}"
+          export APP_VERSION="$VERSION_TRIMMED"
+
+          # Check if target file exists
+          if [ ! -f "$TARGET_FILE" ]; then
+            echo "Error: Target file '$TARGET_FILE' not found"
+            echo "Current directory contents:"
+            ls -la
+            exit 1
+          fi
 
           # Build the binary with Bun
-          bun build --compile --outfile $BINARY_NAME ${{ env.CLI_ENTRYPOINT }} --minify
+          bun build --compile --target=${{ matrix.bun-target }} --outfile=$BINARY_NAME "$TARGET_FILE" --minify
 
           # Verify the binary was created
           if [ ! -f "$BINARY_NAME" ]; then
