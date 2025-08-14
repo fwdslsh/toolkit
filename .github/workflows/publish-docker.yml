@@ -7,16 +7,40 @@ on:
         description: "Release tag (e.g., v1.0.0)"
         required: true
         type: string
-
+      description:
+        description: "Short description for Docker Hub"
+        required: true
+        type: string
+      readme:
+        description: "Path to the README file for Docker Hub description"
+        required: true
+        type: string
+        default: .github/workflows/docker.md
+      dockerfile:
+        description: "Path to the Dockerfile to build"
+        required: true
+        type: string
+        default: Dockerfile
   workflow_dispatch:
     inputs:
-      release:
+      tag:
         description: "Release tag (e.g., v1.0.0)"
         required: true
         type: string
-env:
-  description: "Lightweight CLI that scans Markdown directories to generate llms.txt and index.json files"
-  readme: ./github/workflows/docker.md
+      description:
+        description: "Short description for Docker Hub"
+        required: true
+        type: string
+      readme:
+        description: "Path to the README file for Docker Hub description"
+        required: true
+        type: string
+        default: .github/workflows/docker.md
+      dockerfile:
+        description: "Path to the Dockerfile to build"
+        required: true
+        type: string
+        default: Dockerfile
 
 jobs:
   docker:
@@ -49,7 +73,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./Dockerfile
+          file: ${{ inputs.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
@@ -63,5 +87,5 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: ${{ github.repository }}
-          short-description: ${{ env.description }}
-          readme-filepath: ${{ env.readme }}
+          short-description: ${{ inputs.description }}
+          readme-filepath: ${{ inputs.readme }}
