@@ -103,8 +103,8 @@ jobs:
             exit 1
           fi
 
-          # Build the binary with Bun
-          bun build --compile --target=${{ matrix.bun-target }} --outfile=$BINARY_NAME "$TARGET_FILE" --minify
+          # Build the binary with Bun (order matters!)
+          bun build "$TARGET_FILE" --compile --target=${{ matrix.bun-target }} --outfile=$BINARY_NAME --minify
 
           # Verify the binary was created
           if [ ! -f "$BINARY_NAME" ]; then
