@@ -13,12 +13,12 @@ on:
         type: string
       readme:
         description: "Path to the README file for Docker Hub description"
-        required: true
+        required: false
         type: string
         default: ./docker/README.md
       dockerfile:
         description: "Path to the Dockerfile to build"
-        required: true
+        required: false
         type: string
         default: ./docker/Dockerfile
   workflow_dispatch:
@@ -33,12 +33,12 @@ on:
         type: string
       readme:
         description: "Path to the README file for Docker Hub description"
-        required: true
+        required: false
         type: string
         default: ./docker/README.md
       dockerfile:
         description: "Path to the Dockerfile to build"
-        required: true
+        required: false
         type: string
         default: ./docker/Dockerfile
 
