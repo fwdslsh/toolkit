@@ -52,19 +52,15 @@ RUN dpkg -i gh_linux_amd64.deb
 # Clean up downloaded files to reduce image size
 RUN rm glow_linux_amd64.deb gh_linux_amd64.deb
 
-
-
-# Install catalog
-RUN curl -fsSL https://raw.githubusercontent.com/fwdslsh/catalog/main/install.sh | bash -s -- --version "${catalog_version:-}"
-
-# Install inform
-RUN curl -fsSL https://raw.githubusercontent.com/fwdslsh/inform/main/install.sh | bash -s -- --version "${inform_version:-}"
-
-# Install unify
-RUN curl -fsSL https://raw.githubusercontent.com/fwdslsh/unify/main/install.sh | bash -s -- --version "${unify_version:-}"
-
+RUN curl -fsSL -o /workspace/install.sh https://raw.githubusercontent.com/fwdslsh/toolkit/main/install.sh
+RUN chmod +x install.sh
+RUN ./install.sh unify && ./install.sh inform && ./install.sh catalog
 # Install giv
 RUN curl -fsSL https://raw.githubusercontent.com/fwdslsh/giv/main/install.sh | bash
+
+RUN mv /root/.local/bin/* /usr/local/bin && \
+    rm install.sh && \
+    chown -R nonroot:nonroot /workspace
 
 # Switch to the non-root user
 USER nonroot
