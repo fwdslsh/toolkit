@@ -112,13 +112,30 @@ jobs:
             exit 1
           fi
 
-          # Test the binary
+          # Test the binary (skip for cross-compilation)
           echo "Testing binary..."
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            ./"$BINARY_NAME" --version
+          RUNNER_ARCH="${{ runner.arch }}"
+          TARGET_ARCH="${{ matrix.target }}"
+          
+          # Check if we can run the binary (same architecture)
+          CAN_TEST=true
+          if [[ "$RUNNER_ARCH" == "X64" && "$TARGET_ARCH" == *"arm64"* ]]; then
+            CAN_TEST=false
+            echo "Skipping binary test: Cannot run ARM64 binary on X64 runner"
+          elif [[ "$RUNNER_ARCH" == "ARM64" && "$TARGET_ARCH" == *"x86_64"* ]]; then
+            CAN_TEST=false
+            echo "Skipping binary test: Cannot run x86_64 binary on ARM64 runner"
+          fi
+          
+          if [[ "$CAN_TEST" == "true" ]]; then
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              ./"$BINARY_NAME" --version
+            else
+              chmod +x "$BINARY_NAME"
+              ./"$BINARY_NAME" --version
+            fi
           else
-            chmod +x "$BINARY_NAME"
-            ./"$BINARY_NAME" --version
+            echo "Binary compilation successful, but skipping execution test due to architecture mismatch"
           fi
 
           # Store binary name for later steps
