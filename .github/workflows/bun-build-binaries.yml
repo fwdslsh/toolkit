@@ -42,23 +42,23 @@ jobs:
           # Linux builds
           - target: linux-x86_64
             os: ubuntu-latest
-            bun-target: linux-x64
+            bun-target: bun-linux-x64
           - target: linux-arm64
             os: ubuntu-latest
-            bun-target: linux-arm64
+            bun-target: bun-linux-arm64
 
           # macOS builds
           - target: darwin-x86_64
             os: macos-13 # Intel runner
-            bun-target: darwin-x64
+            bun-target: bun-darwin-x64
           - target: darwin-arm64
             os: macos-latest # ARM runner
-            bun-target: darwin-arm64
+            bun-target: bun-darwin-arm64
 
           # Windows builds
           - target: windows-x86_64
             os: windows-latest
-            bun-target: windows-x64
+            bun-target: bun-windows-x64
             extension: .exe
 
     outputs:
