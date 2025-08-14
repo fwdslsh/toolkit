@@ -1,11 +1,30 @@
 #!/bin/bash
 set -e
 
-# Usage: ./release.sh <target-folder> [patch|minor|major]
+
+# Usage: ./release.sh <target-folder> [patch|minor|major] [--dry-run]
 # Default bump type: patch
 
-TARGET_DIR="$1"
-BUMP_TYPE="${2:-patch}"
+TARGET_DIR=""
+BUMP_TYPE="patch"
+DRY_RUN="false"
+
+# Parse args
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run)
+      DRY_RUN="true"
+      ;;
+    patch|minor|major)
+      BUMP_TYPE="$arg"
+      ;;
+    *)
+      if [[ -z "$TARGET_DIR" ]]; then
+        TARGET_DIR="$arg"
+      fi
+      ;;
+  esac
+done
 
 if [ -z "$TARGET_DIR" ]; then
   echo "Error: Target directory required as first argument."
@@ -48,6 +67,14 @@ case "$BUMP_TYPE" in
 esac
 
 NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+
+
+# --dry-run option: print the next version and exit
+if [[ "$DRY_RUN" == "true" ]]; then
+  echo "$NEW_VERSION"
+  cd "$ORIG_DIR"
+  exit 0
+fi
 
 # Update package.json
 jq ".version = \"$NEW_VERSION\"" "$PKG_FILE" > "$PKG_FILE.tmp" && mv "$PKG_FILE.tmp" "$PKG_FILE"
