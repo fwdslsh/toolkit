@@ -49,7 +49,7 @@ jobs:
 
           # macOS builds
           - target: darwin-x86_64
-            os: macos-13 # Intel runner
+            os: macos-15 # Intel runner
             bun-target: bun-darwin-x64
           - target: darwin-arm64
             os: macos-latest # ARM runner
