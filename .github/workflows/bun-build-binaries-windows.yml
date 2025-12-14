@@ -55,6 +55,11 @@ jobs:
             os: macos-latest # ARM runner
             bun-target: bun-darwin-arm64
 
+          # Windows builds
+          - target: windows-x86_64
+            os: windows-latest
+            bun-target: bun-windows-x64
+            extension: .exe
 
     outputs:
       artifact-names: ${{ steps.set-outputs.outputs.artifact-names }}
